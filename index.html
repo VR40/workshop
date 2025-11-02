@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Channel Tracker — Hot in the Last 7 Days</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Hot on YouTube (Last 7 Days)</h1>
+      <p class="subtitle">
+        Track the most-viewed recent videos from your favorite channels.
+      </p>
+    </header>
+
+    <main>
+      <section id="controls" class="panel">
+        <h2>Settings</h2>
+        <label for="channels" class="field-label">Channel URLs</label>
+        <textarea
+          id="channels"
+          placeholder="One YouTube channel URL per line"
+          rows="6"
+        ></textarea>
+
+        <div class="controls-grid">
+          <label class="field">
+            <span>API Key</span>
+            <div class="field-with-button">
+              <input id="apiKey" type="password" autocomplete="off" />
+              <button id="toggleApiKey" type="button" aria-label="Show API key">
+                Show
+              </button>
+            </div>
+            <small class="hint"
+              >Stored locally for convenience. Clear at any time.</small
+            >
+          </label>
+
+          <label class="field">
+            <span>Date Range</span>
+            <select id="preset">
+              <option value="7">Last 7 days</option>
+              <option value="14">Last 14 days</option>
+              <option value="30">Last 30 days</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Custom Start Date</span>
+            <input id="customDate" type="date" />
+          </label>
+
+          <label class="field">
+            <span>Min Views</span>
+            <input id="minViews" type="number" value="10000" min="0" />
+          </label>
+
+          <label class="field checkbox-field">
+            <input id="includeShorts" type="checkbox" checked />
+            <span>Include Shorts</span>
+          </label>
+
+          <label class="field">
+            <span>Sort By</span>
+            <select id="sortBy">
+              <option value="views">Views (desc)</option>
+              <option value="date">Date (newest first)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="fetchBtn" class="primary">Fetch Videos</button>
+          <button id="clearCacheBtn" type="button">Clear Cache</button>
+        </div>
+
+        <div class="settings-row">
+          <label class="checkbox-field">
+            <input id="groupToggle" type="checkbox" />
+            <span>Group by channel</span>
+          </label>
+          <div class="export-buttons">
+            <button id="copyCsvBtn" type="button">Copy CSV</button>
+            <button id="downloadJsonBtn" type="button">Download JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="progress" class="panel hidden" aria-live="polite">
+        <div class="progress-header">
+          <span id="progressText">Preparing…</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill"></div>
+        </div>
+      </section>
+
+      <section id="summary" class="panel">
+        <div class="summary-item">
+          <span class="summary-label">Channels</span>
+          <span id="summaryChannels" class="summary-value">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Videos Scanned</span>
+          <span id="summaryScanned" class="summary-value">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Matches</span>
+          <span id="summaryMatches" class="summary-value">0</span>
+        </div>
+      </section>
+
+      <section id="errors" class="panel hidden" aria-live="assertive">
+        <h2>Issues</h2>
+        <ul id="errorList"></ul>
+      </section>
+
+      <section id="grid" class="grid" aria-live="polite"></section>
+    </main>
+
+    <template id="videoCardTemplate">
+      <article class="video-card">
+        <div class="thumbnail-wrapper">
+          <img loading="lazy" alt="" />
+          <span class="badge short">Short</span>
+          <div class="skeleton"></div>
+        </div>
+        <div class="video-meta">
+          <a class="video-title" target="_blank" rel="noopener"></a>
+          <a class="video-channel" target="_blank" rel="noopener"></a>
+          <div class="stats">
+            <span class="views"></span>
+            <span class="date"></span>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <template id="groupTemplate">
+      <section class="channel-group">
+        <button class="group-header" type="button">
+          <span class="group-title"></span>
+          <span class="group-count"></span>
+        </button>
+        <div class="group-content"></div>
+      </section>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
