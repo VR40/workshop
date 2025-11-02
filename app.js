@@ -229,24 +229,40 @@ async function fetchChannelSnippet(channelId, apiKey) {
 }
 
 async function resolveHandle(handle, apiKey) {
+  const normalized = handle.replace(/^@/, "").toLowerCase();
   const params = new URLSearchParams({
     part: "snippet",
     type: "channel",
     q: handle,
-    maxResults: "1",
+    maxResults: "5",
     key: apiKey,
   });
   const data = await fetchJson(
     `https://www.googleapis.com/youtube/v3/search?${params.toString()}`
   );
-  const item = data.items?.[0];
-  if (!item) {
+  const items = data.items || [];
+  if (!items.length) {
     throw new Error(`Handle ${handle} not found`);
   }
+
+  const match = items.find((item) => {
+    const customUrl = item.snippet?.customUrl?.replace(/^@/, "").toLowerCase();
+    return customUrl === normalized;
+  });
+  const selected = match || items.find((item) => extractChannelId(item));
+  if (!selected) {
+    throw new Error(`Handle ${handle} not found`);
+  }
+
+  const channelId = extractChannelId(selected);
+  if (!channelId) {
+    throw new Error(`Handle ${handle} missing channel id`);
+  }
+
   return {
-    channelId: item.snippet?.channelId,
-    channelTitle: item.snippet?.channelTitle ?? handle,
-    channelUrl: `https://www.youtube.com/channel/${item.snippet?.channelId}`,
+    channelId,
+    channelTitle: selected.snippet?.channelTitle ?? handle,
+    channelUrl: `https://www.youtube.com/channel/${channelId}`,
   };
 }
 
@@ -275,21 +291,30 @@ async function searchByQuery(query, apiKey) {
     part: "snippet",
     type: "channel",
     q: query,
-    maxResults: "1",
+    maxResults: "5",
     key: apiKey,
   });
   const data = await fetchJson(
     `https://www.googleapis.com/youtube/v3/search?${params.toString()}`
   );
-  const item = data.items?.[0];
-  if (!item) {
+  const items = data.items || [];
+  if (!items.length) {
     throw new Error(`Channel ${query} not found`);
   }
+  const selected = items.find((item) => extractChannelId(item));
+  if (!selected) {
+    throw new Error(`Channel ${query} not found`);
+  }
+  const channelId = extractChannelId(selected);
   return {
-    channelId: item.snippet?.channelId,
-    channelTitle: item.snippet?.channelTitle ?? query,
-    channelUrl: `https://www.youtube.com/channel/${item.snippet?.channelId}`,
+    channelId,
+    channelTitle: selected.snippet?.channelTitle ?? query,
+    channelUrl: `https://www.youtube.com/channel/${channelId}`,
   };
+}
+
+function extractChannelId(item) {
+  return item?.id?.channelId || item?.snippet?.channelId || null;
 }
 
 async function fetchRecentVideoIds(channelId, sinceISO, apiKey) {
